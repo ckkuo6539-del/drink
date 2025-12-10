@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>飲料團購協作平台 | 離線版 (名單選單)</title>
+    
+    <style>
+        /* --- CSS Reset & Base Variables --- */
+        :root {
+            --color-bg: #fbfaf8;
+            --color-matcha: #5c8d6d;
+            --color-matcha-dark: #4a7558;
+            --color-milktea: #e6dcc3;
+            --color-milktea-light: #f5f0e6;
+            --color-roast: #3e362e;
+            --color-text: #1e293b; /* slate-800 */
+            --color-text-light: #64748b; /* slate-500 */
+            --color-border: #e7e5e4; /* stone-200 */
+            --color-white: #ffffff;
+            --color-red: #ef4444;
+            --color-red-bg: #fef2f2;
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --radius-xl: 0.75rem;
+            --radius-lg: 0.5rem;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: "Microsoft JhengHei", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--color-bg);
+            color: var(--color-text);
+            line-height: 1.5;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* --- Layout Utilities --- */
+        .container {
+            width: 100%;
+            max-width: 1152px; /* max-w-6xl */
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+
+        .grid {
+            display: grid;
+            gap: 2rem;
+        }
+
+        @media (min-width: 1024px) {
+            .grid-cols-12 {
+                grid-template-columns: repeat(12, minmax(0, 1fr));
+            }
+            .col-span-4 { grid-column: span 4 / span 4; }
+            .col-span-8 { grid-column: span 8 / span 8; }
+        }
+
+        @media (min-width: 768px) {
+            .grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        }
+
+        .flex { display: flex; }
+        .flex-col { flex-direction: column; }
+        .items-center { align-items: center; }
+        .justify-between { justify-content: space-between; }
+        .justify-center { justify-content: center; }
+        .justify-end { justify-content: flex-end; }
+        .gap-2 { gap: 0.5rem; }
+        .gap-3 { gap: 0.75rem; }
+        .gap-4 { gap: 1rem; }
+        .gap-6 { gap: 1.5rem; }
+        .flex-grow { flex-grow: 1; }
+        
+        .w-full { width: 100%; }
+        .text-center { text-align: center; }
+        .mb-1 { margin-bottom: 0.25rem; }
+        .mb-2 { margin-bottom: 0.5rem; }
+        .mb-3 { margin-bottom: 0.75rem; }
+        .mb-6 { margin-bottom: 1.5rem; }
+        .mb-8 { margin-bottom: 2rem; }
+        .mt-2 { margin-top: 0.5rem; }
+        .mt-auto { margin-top: auto; }
+        .p-4 { padding: 1rem; }
+        .p-5 { padding: 1.25rem; }
+        .py-2 { padding-top: 0.5rem; padding-bottom: 0.5rem; }
+        .px-3 { padding-left: 0.75rem; padding-right: 0.75rem; }
+        .px-4 { padding-left: 1rem; padding-right: 1rem; }
+        .py-3 { padding-top: 0.75rem; padding-bottom: 0.75rem; }
+        .py-6 { padding-top: 1.5rem; padding-bottom: 1.5rem; }
+        .hidden { display: none !important; }
+
+        /* --- Components --- */
+        /* Navbar */
+        nav {
+            background-color: var(--color-matcha);
+            color: white;
+            box-shadow: var(--shadow-md);
+            position: sticky;
+            top: 0;
+            z-index: 50;
+        }
+        .nav-badge {
+            background-color: var(--color-matcha-dark);
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        /* Cards */
+        .card {
+            background-color: var(--color-white);
+            border-radius: var(--radius-xl);
+            box-shadow: var(--shadow-lg);
+            border: 1px solid var(--color-border);
+            overflow: hidden;
+        }
+        .card-header {
+            background-color: var(--color-milktea);
+            padding: 1rem;
+            border-bottom: 1px solid var(--color-border);
+            color: var(--color-roast);
+            font-weight: bold;
+        }
+        .card-header-light {
+            background-color: #f8fafc; /* slate-50 */
+        }
+
+        /* Form Elements */
+        label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: bold;
+            color: #475569; /* slate-600 */
+        }
+        input, select {
+            width: 100%;
+            padding: 0.5rem 1rem;
+            border-radius: var(--radius-lg);
+            border: 1px solid #cbd5e1; /* slate-300 */
+            outline: none;
+            transition: all 0.2s;
+            font-size: 1rem;
+        }
+        input:focus, select:focus {
+            border-color: var(--color-matcha);
+            box-shadow: 0 0 0 2px rgba(92, 141, 109, 0.5);
+        }
+
+        /* Buttons */
+        .btn {
+            width: 100%;
+            padding: 0.75rem;
+            border-radius: var(--radius-lg);
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            font-size: 1rem;
+        }
+        .btn-primary {
+            background-color: var(--color-matcha);
+            color: white;
+            box-shadow: var(--shadow-md);
+        }
+        .btn-primary:hover { background-color: var(--color-matcha-dark); transform: translateY(-1px); }
+        .btn-primary:active { transform: translateY(0); }
+        
+        .btn-danger-outline {
+            background-color: white;
+            border: 1px solid #fecaca;
+            color: var(--color-red);
+        }
+        .btn-danger-outline:hover { background-color: var(--color-red-bg); }
+
+        .btn-icon {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #94a3b8;
+            padding: 0.5rem;
+            font-size: 1.2rem;
+        }
+        .btn-icon:hover { color: var(--color-red); }
+
+        /* Table */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+        th {
+            background-color: #f1f5f9; /* slate-100 */
+            color: #475569;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            padding: 1rem;
+        }
+        td {
+            padding: 1rem;
+            border-bottom: 1px solid #f1f5f9;
+        }
+        tr:last-child td { border-bottom: none; }
+        tr:hover { background-color: #fffbeb; } /* amber-50 */
+
+        /* Tags */
+        .tag {
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        .tag-blue { background-color: #dbeafe; color: #1d4ed8; }
+        .tag-pink { background-color: #fce7f3; color: #be185d; }
+
+        /* Charts - Custom Canvas */
+        .chart-wrapper {
+            background-color: rgba(245, 240, 230, 0.3);
+            border-radius: var(--radius-lg);
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100%;
+        }
+        canvas {
+            max-width: 100%;
+            max-height: 250px;
+        }
+        .legend {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-top: 1rem;
+            font-size: 0.75rem;
+            color: var(--color-text-light);
+        }
+        .legend-item { display: flex; align-items: center; gap: 0.25rem; }
+        .legend-color { width: 10px; height: 10px; border-radius: 50%; }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s;
+        }
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .modal-content {
+            background-color: white;
+            border-radius: var(--radius-xl);
+            padding: 1.5rem;
+            width: 100%;
+            max-width: 350px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+            transform: scale(0.95);
+            transition: transform 0.2s;
+        }
+        .modal-overlay.active .modal-content { transform: scale(1); }
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.75rem;
+            margin-top: 1.5rem;
+        }
+        .btn-modal-cancel {
+            background: #f1f5f9;
+            color: #475569;
+            padding: 0.5rem 1rem;
+            border-radius: var(--radius-lg);
+            border: none;
+            cursor: pointer;
+        }
+        .btn-modal-confirm {
+            background: var(--color-red);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: var(--radius-lg);
+            border: none;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Navbar -->
+    <nav>
+        <div class="container py-3 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <span style="font-size: 1.5rem;">🥤</span>
+                <h1 style="font-size: 1.25rem; font-weight: bold;">飲料團購協作平台 <span style="font-size: 0.8rem; opacity: 0.8; font-weight: normal;">(離線版)</span></h1>
+            </div>
+            <div class="nav-badge flex items-center gap-2">
+                <span>目前訂單:</span>
+                <span id="header-count" style="color: #fef08a; font-weight: bold; font-size: 1.125rem;">0</span>
+                <span>杯</span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="flex-grow container py-6">
+        
+        <!-- Intro -->
+        <section class="text-center mb-6" style="max-width: 48rem; margin-left: auto; margin-right: auto;">
+            <h2 style="font-size: 1.5rem; color: var(--color-roast); font-weight: bold; margin-bottom: 0.5rem;">開始新的團購任務</h2>
+            <p style="color: var(--color-text-light);">
+                已更新為「公司成員選單版」，請選擇姓名並輸入飲料。
+            </p>
+        </section>
+
+        <div class="grid grid-cols-12 gap-6">
+            
+            <!-- Left Column: Input -->
+            <div class="col-span-4 flex flex-col gap-6">
+                <!-- Add Order Card -->
+                <div class="card">
+                    <div class="card-header flex items-center gap-2">
+                        <span>📝</span> 新增訂單
+                    </div>
+                    <div class="p-5 flex flex-col gap-4">
+                        <!-- Inputs -->
+                        <div>
+                            <label class="mb-1">姓名</label>
+                            <!-- UPDATED: Select Dropdown with specific names -->
+                            <select id="input-name">
+                                <option value="" disabled selected>請選擇姓名...</option>
+                                <option value="Alice Lin">Alice Lin</option>
+                                <option value="Benson Liu">Benson Liu</option>
+                                <option value="Chu-Ruey Li">Chu-Ruey Li</option>
+                                <option value="CK Kuo">CK Kuo</option>
+                                <option value="Danny Kang">Danny Kang</option>
+                                <option value="Derek Chang">Derek Chang</option>
+                                <option value="Emily Lee (Ting-Yi)">Emily Lee (Ting-Yi)</option>
+                                <option value="Folium Wu">Folium Wu</option>
+                                <option value="Gene Chang">Gene Chang</option>
+                                <option value="Kenny Liu">Kenny Liu</option>
+                                <option value="Kenny Tseng">Kenny Tseng</option>
+                                <option value="Leo Chang">Leo Chang</option>
+                                <option value="Leo Chiang">Leo Chiang</option>
+                                <option value="Lydia Liao">Lydia Liao</option>
+                                <option value="Mark Tsai">Mark Tsai</option>
+                                <option value="Vincent Chen">Vincent Chen</option>
+                                <option value="Zoe Luo">Zoe Luo</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="mb-1">飲料品名</label>
+                            <input type="text" id="input-drink" placeholder="例如：珍珠奶茶">
+                        </div>
+                        <div class="grid grid-cols-2 gap-4" style="gap: 1rem;">
+                            <div>
+                                <label class="mb-1">冰量 🧊</label>
+                                <select id="input-ice">
+                                    <option value="正常冰">正常冰</option>
+                                    <option value="少冰">少冰</option>
+                                    <option value="半冰">半冰</option>
+                                    <option value="微冰" selected>微冰</option>
+                                    <option value="去冰">去冰</option>
+                                    <option value="完全去冰">完全去冰</option>
+                                    <option value="常溫">常溫</option>
+                                    <option value="溫">溫</option>
+                                    <option value="熱">熱</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="mb-1">甜度 🍬</label>
+                                <select id="input-sugar">
+                                    <option value="正常甜">正常甜</option>
+                                    <option value="少糖">少糖</option>
+                                    <option value="半糖">半糖</option>
+                                    <option value="微糖" selected>微糖</option>
+                                    <option value="一分糖">一分糖</option>
+                                    <option value="無糖">無糖</option>
+                                </select>
+                            </div>
+                        </div>
+                        <button onclick="addOrder()" class="btn btn-primary mt-2">
+                            <span>➕</span> 加入清單
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Actions Card -->
+                <div class="card p-5">
+                    <h3 style="color: var(--color-roast); font-weight: bold; font-size: 0.875rem; text-transform: uppercase; margin-bottom: 0.75rem;">輸出操作</h3>
+                    <button onclick="confirmClearAll()" class="btn btn-danger-outline">
+                        <span>🗑️</span> 清空所有資料
+                    </button>
+                </div>
+            </div>
+
+            <!-- Right Column: Data -->
+            <div class="col-span-8 flex flex-col gap-6">
+                
+                <!-- Charts Section -->
+                <div class="grid grid-cols-2 gap-6">
+                    <div class="card p-4">
+                        <h4 style="text-align: center; font-size: 0.875rem; color: var(--color-text-light); font-weight: bold; margin-bottom: 0.5rem;">甜度偏好分析</h4>
+                        <div class="chart-wrapper">
+                            <canvas id="sugarCanvas" width="250" height="250"></canvas>
+                            <div id="sugarLegend" class="legend"></div>
+                        </div>
+                    </div>
+                    <div class="card p-4">
+                        <h4 style="text-align: center; font-size: 0.875rem; color: var(--color-text-light); font-weight: bold; margin-bottom: 0.5rem;">冰量分佈統計</h4>
+                        <div class="chart-wrapper">
+                            <canvas id="iceCanvas" width="250" height="250"></canvas>
+                            <div id="iceLegend" class="legend"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- List Section -->
+                <div class="card flex-grow flex flex-col" style="min-height: 400px;">
+                    <div class="card-header card-header-light flex justify-between items-center">
+                        <h3 style="color: var(--color-roast);">🗃️ 訂單明細</h3>
+                        <span style="font-size: 0.75rem; color: #94a3b8;">最新訂單在下</span>
+                    </div>
+                    <div style="overflow-x: auto; flex-grow: 1;">
+                        <table id="orderTable">
+                            <thead>
+                                <tr>
+                                    <th style="width: 3rem; text-align: center;">#</th>
+                                    <th>姓名</th>
+                                    <th>飲料</th>
+                                    <th>冰量</th>
+                                    <th>甜度</th>
+                                    <th style="width: 5rem; text-align: center;">操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="order-list-body">
+                                <!-- Dynamic Content -->
+                            </tbody>
+                        </table>
+                        <div id="empty-state" style="padding: 3rem; text-align: center; color: #94a3b8;">
+                            <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">☕</div>
+                            <p>尚無訂單，請由左側新增</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal -->
+    <div id="custom-modal" class="modal-overlay">
+        <div class="modal-content">
+            <h3 id="modal-title" style="font-size: 1.125rem; font-weight: bold; color: var(--color-roast); margin-bottom: 0.5rem;">確認</h3>
+            <p id="modal-message" style="color: #475569; margin-bottom: 1.5rem; line-height: 1.5;">Message</p>
+            <div class="modal-actions">
+                <button id="modal-cancel" class="btn-modal-cancel">取消</button>
+                <button id="modal-confirm" class="btn-modal-confirm">確定</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer style="background-color: #1e293b; color: #94a3b8; padding: 1.5rem; text-align: center; font-size: 0.875rem; margin-top: auto;">
+        <div class="container">
+            <p>&copy; 2025 Drink Coordinator (Offline Edition)</p>
+        </div>
+    </footer>
+
+    <script>
+        // --- Core Logic ---
+        let orders = [];
+        
+        // Colors for Charts
+        const palette = [
+            '#5c8d6d', '#8ab09a', '#e6dcc3', '#d4c5a3', '#3e362e', '#6b5e51', '#a89f91'
+        ];
+
+        document.addEventListener('DOMContentLoaded', () => {
+            renderAll();
+            
+            // Enter key shortcuts
+            // Note: input-name is now a select, so we only listen on input-drink
+            document.getElementById('input-drink').addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') addOrder();
+            });
+        });
+
+        function addOrder() {
+            const nameEl = document.getElementById('input-name');
+            const drinkEl = document.getElementById('input-drink');
+            const iceEl = document.getElementById('input-ice');
+            const sugarEl = document.getElementById('input-sugar');
+
+            const name = nameEl.value; // No trim needed for select
+            const drink = drinkEl.value.trim();
+
+            // Validate logic: Name must be selected (not empty string)
+            if (!name || name === "" || !drink) {
+                showModal('資料不完整', '請選擇姓名並輸入飲料品名', false);
+                return;
+            }
+
+            const newOrder = {
+                id: Date.now(),
+                name,
+                drink,
+                ice: iceEl.value,
+                sugar: sugarEl.value
+            };
+
+            orders.push(newOrder);
+            // Don't reset name selection (often helpful to keep) or reset if preferred?
+            // Resetting for next person:
+            // nameEl.value = ""; 
+            // Keeping drink blank:
+            drinkEl.value = '';
+            drinkEl.focus();
+
+            renderAll();
+        }
+
+        function deleteOrder(id) {
+            orders = orders.filter(o => o.id !== id);
+            renderAll();
+        }
+
+        function confirmClearAll() {
+            if (orders.length === 0) return;
+            showModal('清空確認', '確定要清空所有訂單嗎？此操作無法復原。', true, () => {
+                orders = [];
+                renderAll();
+            });
+        }
+
+        function renderAll() {
+            renderList();
+            document.getElementById('header-count').textContent = orders.length;
+            
+            // Draw Charts (Custom Logic)
+            drawDonutChart('sugarCanvas', 'sugarLegend', 'sugar');
+            drawDonutChart('iceCanvas', 'iceLegend', 'ice');
+        }
+
+        // --- List Rendering ---
+        function renderList() {
+            const tbody = document.getElementById('order-list-body');
+            const emptyState = document.getElementById('empty-state');
+            
+            tbody.innerHTML = '';
+
+            if (orders.length === 0) {
+                emptyState.style.display = 'block';
+                return;
+            }
+            
+            emptyState.style.display = 'none';
+
+            orders.forEach((order, index) => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td style="text-align: center; color: #94a3b8; font-weight: bold;">${index + 1}</td>
+                    <td style="font-weight: 500;">${escapeHtml(order.name)}</td>
+                    <td style="color: #334155;">${escapeHtml(order.drink)}</td>
+                    <td><span class="tag tag-blue">${order.ice}</span></td>
+                    <td><span class="tag tag-pink">${order.sugar}</span></td>
+                    <td style="text-align: center;">
+                        <button onclick="deleteOrder(${order.id})" class="btn-icon" title="刪除">✖</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // --- Custom Chart Engine (No External Libs) ---
+        function drawDonutChart(canvasId, legendId, key) {
+            const canvas = document.getElementById(canvasId);
+            const ctx = canvas.getContext('2d');
+            const legendEl = document.getElementById(legendId);
+            
+            // Clear Canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            legendEl.innerHTML = '';
+
+            if (orders.length === 0) {
+                // Draw Grey Placeholder
+                drawArc(ctx, canvas.width/2, canvas.height/2, 100, 0, Math.PI*2, '#e2e8f0');
+                cutoutCenter(ctx, canvas.width/2, canvas.height/2, 60);
+                legendEl.innerHTML = '<span>尚無數據</span>';
+                return;
+            }
+
+            // Aggregate Data
+            const counts = {};
+            orders.forEach(o => {
+                const val = o[key];
+                counts[val] = (counts[val] || 0) + 1;
+            });
+
+            const labels = Object.keys(counts);
+            const total = orders.length;
+            let startAngle = 0;
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const radius = 100;
+
+            labels.forEach((label, index) => {
+                const count = counts[label];
+                const sliceAngle = (count / total) * 2 * Math.PI;
+                const color = palette[index % palette.length];
+
+                // Draw Slice
+                drawArc(ctx, centerX, centerY, radius, startAngle, startAngle + sliceAngle, color);
+                
+                // Add to Legend
+                const legendItem = document.createElement('div');
+                legendItem.className = 'legend-item';
+                legendItem.innerHTML = `<div class="legend-color" style="background: ${color}"></div> ${label} (${count})`;
+                legendEl.appendChild(legendItem);
+
+                startAngle += sliceAngle;
+            });
+
+            // Cutout Center (Donut effect)
+            cutoutCenter(ctx, centerX, centerY, 60);
+        }
+
+        function drawArc(ctx, x, y, r, start, end, color) {
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+            ctx.arc(x, y, r, start, end);
+            ctx.closePath();
+            ctx.fillStyle = color;
+            ctx.fill();
+            // White border for separation
+            ctx.strokeStyle = 'white';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+        }
+
+        function cutoutCenter(ctx, x, y, r) {
+            ctx.beginPath();
+            ctx.arc(x, y, r, 0, 2 * Math.PI);
+            ctx.fillStyle = 'rgba(255,255,255,1)'; // Must match card bg slightly but white is safest
+            ctx.fill();
+        }
+
+        // --- Modal & Utilities ---
+        let currentConfirmCallback = null;
+
+        function showModal(title, message, isConfirmType = true, confirmCallback = null) {
+            const modal = document.getElementById('custom-modal');
+            const confirmBtn = document.getElementById('modal-confirm');
+            const cancelBtn = document.getElementById('modal-cancel');
+
+            document.getElementById('modal-title').textContent = title;
+            document.getElementById('modal-message').textContent = message;
+            currentConfirmCallback = confirmCallback;
+
+            if (isConfirmType) {
+                confirmBtn.style.display = 'block';
+                cancelBtn.textContent = '取消';
+                confirmBtn.onclick = () => {
+                    if (currentConfirmCallback) currentConfirmCallback();
+                    hideModal();
+                };
+            } else {
+                confirmBtn.style.display = 'none';
+                cancelBtn.textContent = '好的';
+            }
+
+            cancelBtn.onclick = hideModal;
+            modal.classList.add('active');
+        }
+
+        function hideModal() {
+            document.getElementById('custom-modal').classList.remove('active');
+            currentConfirmCallback = null;
+        }
+
+        function escapeHtml(text) {
+            const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+            return text.replace(/[&<>"']/g, function(m) { return map[m]; });
+        }
+    </script>
+</body>
+</html>
