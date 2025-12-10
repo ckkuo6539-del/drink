@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>飲料團購協作平台 | 離線版 (名單選單)</title>
+    <title>飲料團購</title>
     
     <style>
         /* --- CSS Reset & Base Variables --- */
@@ -113,6 +113,18 @@
             border-radius: 9999px;
             font-size: 0.875rem;
             font-weight: 500;
+        }
+
+        /* Warning Banner for Teams Preview */
+        .teams-warning {
+            background-color: #fee2e2;
+            border-left: 4px solid #ef4444;
+            color: #b91c1c;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            border-radius: 4px;
+            font-weight: bold;
+            display: none; /* Hidden by default, shown by NoScript or if JS fails */
         }
 
         /* Cards */
@@ -310,7 +322,7 @@
         <div class="container py-3 flex justify-between items-center">
             <div class="flex items-center gap-3">
                 <span style="font-size: 1.5rem;">🥤</span>
-                <h1 style="font-size: 1.25rem; font-weight: bold;">飲料團購協作平台 <span style="font-size: 0.8rem; opacity: 0.8; font-weight: normal;">(離線版)</span></h1>
+                <h1 style="font-size: 1.25rem; font-weight: bold;">飲料團購</h1>
             </div>
             <div class="nav-badge flex items-center gap-2">
                 <span>目前訂單:</span>
@@ -323,6 +335,14 @@
     <!-- Main Content -->
     <main class="flex-grow container py-6">
         
+        <!-- Teams Preview Warning: Shows if JS is blocked -->
+        <noscript>
+            <div class="teams-warning" style="display: block;">
+               ⚠️ 警告：偵測到腳本被封鎖（例如：在 Teams 預覽模式中）。<br>
+                請勿直接在預覽視窗操作。請點選上方「...」>「下載」，並在電腦上開啟檔案以正常使用。
+            </div>
+        </noscript>
+
         <!-- Intro -->
         <section class="text-center mb-6" style="max-width: 48rem; margin-left: auto; margin-right: auto;">
             <h2 style="font-size: 1.5rem; color: var(--color-roast); font-weight: bold; margin-bottom: 0.5rem;">開始新的團購任務</h2>
